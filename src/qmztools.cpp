@@ -224,8 +224,24 @@ bool createFolder(const QString &path)
 
 QString joinPath(const QString &abs_path, const QString &rel_path)
 {
-    return endsWithSlash(abs_path) ? abs_path + rel_path
-                                   : abs_path % s_sep % rel_path;
+    /* OLD impl.
+     * return endsWithSlash(abs_path) ? abs_path + rel_path
+     *                                : abs_path % s_sep % rel_path;
+     */
+
+    /* Implementation from https://github.com/artemvlas/pathstr */
+    const bool s1Ends = endsWithSlash(abs_path);
+    const bool s2Starts = startsWithSlash(rel_path);
+
+    if (s1Ends && s2Starts) {
+        QStringView chopped = QStringView(abs_path).left(abs_path.size() - 1);
+        return chopped % rel_path;
+    }
+
+    if (s1Ends || s2Starts)
+        return abs_path + rel_path;
+
+    return abs_path % s_sep % rel_path;
 }
 
 } // namespace tools
