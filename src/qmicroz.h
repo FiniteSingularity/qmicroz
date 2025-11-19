@@ -20,6 +20,8 @@
 
 #include <QStringList>
 #include <QMap>
+#include <QList>
+#include <QVariant>
 #include <QDateTime>
 
 // Used to store a file data in the memory
@@ -35,6 +37,9 @@ struct BufFile {
     QByteArray data;    // file data (uncompressed)
     QDateTime modified; // last modified date and time
 }; // struct BufFile
+
+// {"path inside zip" : data(QByteArray) or Path(QString) }
+using PathBufFilesList = QMap<QString, QVariant>;
 
 // { "path inside zip" : data }
 using BufList = QMap<QString, QByteArray>;
@@ -168,6 +173,8 @@ public:
     // <file_name> is the displayed file name inside the archive
     static bool compress(const QString &file_name,
                          const QByteArray &file_data, const QString &zip_path);
+
+    static bool compress(const PathBufFilesList &files, const QString &zip_path);
 
     // checks whether this <data> is an archive
     static bool isArchive(const QByteArray &data);

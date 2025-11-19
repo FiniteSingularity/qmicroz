@@ -567,6 +567,49 @@ bool QMicroz::compress(const QString &file_name,
     return compress(buf, zip_path);
 }
 
+bool QMicroz::compress(const PathBufFilesList &files, const QString &zip_path)
+{
+	if (files.isEmpty()) {
+		qWarning() << "QMicroz: No input data.";
+		return false;
+	}
+
+	// create and open the output zip file
+	mz_zip_archive *pZip = tools::za_new(zip_path, tools::ZaWriter);
+
+	if (!pZip)
+		return false;
+
+	// process
+	PathBufFilesList::const_iterator it;
+	for (it = files.constBegin(); it != files.constEnd(); ++it) {
+		QString typeName = it.value().typeName();
+		if (typeName == "QByteArray") {
+			const QByteArray &data = it.value().value<QByteArray>();
+			if (!tools::add_item_data(pZip, it.key(), data)) {
+				tools::za_close(pZip);
+				return false;
+			}
+        } else if (typeName == "QString") {
+			const QString filePath = it.value().value<QString>();
+		    if (!tools::add_item_file(pZip, filePath, it.key())) {
+				tools::za_close(pZip);
+			    return false;
+            }
+        } else {
+		    tools::za_close(pZip);
+		    qWarning() << "QMicroz: Invalid type PathBufFilesList.";
+		    return false;
+        }
+	}
+	// success
+	mz_zip_writer_finalize_archive(pZip);
+	tools::za_close(pZip);
+
+    return true;
+}
+
+
 /*** Additional ***/
 bool QMicroz::isArchive(const QByteArray &data)
 {
